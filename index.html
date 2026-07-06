@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Faces - 智能人脸识别系统</title>
+<style>
+:root {
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #251a3a;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #334155;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.10) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+  z-index: 0;
+  animation: bgFloat 20s ease-in-out infinite;
+}
+
+@keyframes bgFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-30px, 20px); }
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-top: 20px;
+}
+.hero .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.hero .logo-icon {
+  width: 52px; height: 52px;
+  background: var(--accent-gradient);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
+}
+.hero .subtitle {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 6px;
+  border: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text-primary); background: rgba(99, 102, 241, 0.08); }
+.tab-btn.active {
+  background: var(--accent-gradient);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+.panel { display: none; animation: fadeIn 0.4s ease; }
+.panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  transition: border-color 0.3s ease;
+}
+.card:hover { border-color: var(--accent); box-shadow: var(--shadow-glow), var(--shadow); }
+
+.card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: all 0.25s ease;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.form-input::placeholder { color: var(--text-muted); }
+
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.upload-zone:hover {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.05);
+}
+.upload-zone.dragover {
+  border-color: var(--accent-light);
+  background: rgba(99, 102, 241, 0.1);
+}
+.upload-zone .upload-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.upload-zone .upload-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.upload-zone .upload-text strong { color: var(--accent-light); }
+.upload-zone input[type="file"] {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.file-name-display {
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--accent-light);
+  display: none;
+}
+.file-name-display.show { display: block; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+}
+.btn-primary {
+  background: var(--accent-gradient);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-secondary {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); }
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+.btn-block { width: 100%; }
+
+.msg-box {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.msg-box.show { display: flex; animation: slideIn 0.3s ease; }
+.msg-box.success { background: rgba(34, 197, 94, 0.12); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.25); }
+.msg-box.error { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.25); }
+.msg-box.info { background: rgba(99, 102, 241, 0.12); color: var(--accent-light); border: 1px solid rgba(99, 102, 241, 0.25); }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.loading-overlay {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+}
+.loading-overlay.show { display: block; }
+.spinner {
+  width: 44px; height: 44px;
+  border: 4px solid rgba(99, 102, 241, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--text-secondary); font-size: 14px; }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.result-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  animation: cardPop 0.4s ease;
+}
+.result-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.result-card .face-icon { font-size: 32px; margin-bottom: 8px; }
+.result-card .face-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.result-card .face-conf {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.result-card.known { border-color: rgba(34, 197, 94, 0.3); }
+.result-card.known .face-name { color: var(--success); }
+.result-card.unknown { border-color: rgba(239, 68, 68, 0.3); }
+.result-card.unknown .face-name { color: var(--danger); }
+
+@keyframes cardPop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.result-summary {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: var(--radius-sm);
+}
+.result-summary .count {
+  font-size: 36px;
+  font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.result-summary .label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.video-container {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  border: 2px solid var(--border);
+  aspect-ratio: 4 / 3;
+}
+.video-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.video-container .video-placeholder {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+.video-container .video-placeholder .icon { font-size: 48px; }
+.video-container .video-placeholder .text { font-size: 15px; }
+
+.video-badge {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.video-badge .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.face-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.face-tag {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+.face-tag:hover { border-color: var(--accent); }
+.face-tag .name {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.face-tag .del-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.face-tag .del-btn:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
+.empty-state {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--text-muted);
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+.empty-state .text { font-size: 14px; }
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.btn-row .btn { flex: 1; min-width: 120px; }
+
+.info-banner {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.6;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.5);
+  animation: modalPop 0.3s ease;
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 18px; font-weight: 600; }
+.modal-close {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: 18px; cursor: pointer;
+  padding: 4px 8px; border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.modal-close:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  display: flex; gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.modal-footer .btn { flex: 1; }
+.capture-preview {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+.capture-preview img { width: 100%; display: block; }
+
+.annotated-img-wrapper {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--bg-dark);
+  transition: border-color 0.3s ease;
+}
+.annotated-img-wrapper:hover { border-color: var(--accent); }
+.annotated-img-wrapper img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 24px; }
+  .tab-btn { font-size: 13px; padding: 10px 8px; }
+  .card { padding: 20px 16px; }
+  .tabs { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hero">
+    <div class="logo">
+      <div class="logo-icon">🧠</div>
+    </div>
+    <h1>AI Faces 智能人脸识别</h1>
+    <p class="subtitle">人脸注册 · 图片识别 · 实时摄像头动态检测</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="register">👤 人脸注册</button>
+    <button class="tab-btn" data-tab="recognize">🖼️ 图片识别</button>
+    <button class="tab-btn" data-tab="camera">📷 实时摄像头</button>
+  </div>
+
+  <div class="panel active" id="panel-register">
+    <div class="card">
+      <div class="card-title">👤 人脸注册入库</div>
+      <div class="card-desc">上传清晰的人脸照片，系统将提取面部特征并录入人脸库</div>
+
+      <form id="regForm">
+        <div class="form-group">
+          <label class="form-label">人员姓名</label>
+          <input type="text" class="form-input" name="name" required placeholder="请输入姓名（如：张三）" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">人脸照片</label>
+          <div class="upload-zone" id="regUploadZone">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">点击选择或拖拽照片到此处<br><strong>支持 JPG / PNG / JPEG 格式</strong></div>
+            <input type="file" id="regFile" name="file" accept="image/*" required>
+          </div>
+          <div class="file-name-display" id="regFileName"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="regSubmitBtn">
+          ✅ 提交注册
+        </button>
+      </form>
+
+      <div class="msg-box" id="regMsg"></div>
+
+      <div style="margin-top: 28px;">
+        <div class="card-title" style="font-size: 16px;">📋 已注册人脸库</div>
+        <div id="faceLibrary" class="face-library">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <div class="text">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-recognize">
+    <div class="card">
+      <div class="card-title">🖼️ 上传图片识别人脸</div>
+      <div class="card-desc">上传一张图片，系统将自动检测并识别人脸，匹配已注册的人员</div>
+
+      <form id="imgForm">
+        <div class="form-group">
+          <label class="form-label">待识别图片</label>
+          <div class="upload-zone" id="imgUploadZone">
+            <div class="upload-icon">🔍</div>
+            <div class="upload-text">点击选择或拖拽图片到此处<br><strong>系统将自动检测图片中的所有人脸</strong></div>
+            <input type="file" id="imgFile" name="file" accept="image/*" required>
+          </div>
+          <div class="file-name-display" id="imgFileName"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="imgSubmitBtn">
+          🚀 开始识别
+        </button>
+      </form>
+
+      <div class="loading-overlay" id="imgLoading">
+        <div class="spinner"></div>
+        <div class="loading-text">正在分析图片中的人脸...</div>
+      </div>
+
+      <div id="imgResultArea" style="display:none;">
+        <div class="result-summary">
+          <div class="count" id="imgFaceCount">0</div>
+          <div class="label">检测到的人脸数量</div>
+        </div>
+        <div id="imgAnnotatedWrapper" style="margin-bottom:20px; display:none;">
+          <div style="font-size:15px; font-weight:600; margin-bottom:10px; color:var(--text-primary);">🖼️ 识别结果图</div>
+          <div class="annotated-img-wrapper">
+            <img id="imgAnnotated" src="" alt="识别结果图">
+          </div>
+        </div>
+        <div class="result-grid" id="imgResultGrid"></div>
+      </div>
+
+      <div class="msg-box" id="imgMsg"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-camera">
+    <div class="card">
+      <div class="card-title">📷 实时摄像头人脸识别</div>
+      <div class="card-desc">开启摄像头进行实时人脸检测与识别，画面中绿色框为已识别人员，红色框为未知人员</div>
+
+      <div class="video-container" id="videoContainer">
+        <img id="videoStream" src="" alt="" style="display:none;">
+        <video id="localVideo" autoplay playsinline style="display:none; width:100%; height:100%; object-fit:cover;"></video>
+        <canvas id="localCanvas" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+        <div class="video-placeholder" id="videoPlaceholder">
+          <div class="icon">📷</div>
+          <div class="text">点击下方按钮开启摄像头</div>
+        </div>
+        <div class="video-badge" id="videoBadge" style="display:none;">
+          <span class="dot"></span>
+          <span>实时识别中</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">摄像头来源</label>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" id="useServerCamBtn" style="flex:1;">🖥️ 电脑摄像头</button>
+          <button class="btn btn-secondary" id="useLocalCamBtn" style="flex:1;">📱 本机摄像头</button>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          <strong>电脑摄像头</strong>：使用服务器端电脑的摄像头（适合电脑访问）<br>
+          <strong>本机摄像头</strong>：使用当前设备（手机/平板）的摄像头（适合移动设备访问）
+        </p>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">
+          检测置信度阈值
+          <span id="confidenceValue2" style="float:right; color:var(--accent-light);">0.70</span>
+        </label>
+        <input type="range" id="confidenceSlider2" class="slider" min="0.1" max="0.95" step="0.05" value="0.70">
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          <strong>低阈值</strong>：检测更灵敏，可能误检更多<br>
+          <strong>高阈值</strong>：检测更严格，只识别最清晰的人脸
+        </p>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">
+          人脸识别匹配阈值
+          <span id="matchValue2" style="float:right; color:var(--accent-light);">0.45</span>
+        </label>
+        <input type="range" id="matchSlider2" class="slider" min="0.2" max="0.6" step="0.05" value="0.45">
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          <strong>低数值</strong>：匹配更严格，只有高度相似才会识别为已注册人员<br>
+          <strong>高数值</strong>：匹配更宽松，容易把陌生人识别为已注册人员
+        </p>
+      </div>
+
+      <div class="btn-row" id="serverCamControls" style="display:none;">
+        <button class="btn btn-primary" id="startCamBtn">▶️ 开启摄像头</button>
+        <button class="btn btn-danger" id="stopCamBtn" style="display:none;">⏹️ 关闭摄像头</button>
+        <button class="btn btn-secondary" id="refreshCamBtn">🔄 刷新视频流</button>
+        <button class="btn btn-secondary" id="captureBtn" style="display:none;">📸 拍照注册</button>
+      </div>
+
+      <div class="btn-row" id="localCamControls" style="display:none;">
+        <button class="btn btn-primary" id="startLocalCamBtn">▶️ 启动本机摄像头</button>
+        <button class="btn btn-danger" id="stopLocalCamBtn" style="display:none;">⏹️ 停止摄像头</button>
+        <button class="btn btn-secondary" id="localCaptureBtn" style="display:none;">📸 拍照注册</button>
+      </div>
+
+      <div class="info-banner">
+        💡 <span>绿色框 = 已注册人员（显示姓名）｜ 红色框 = 未知人员<br>点击「拍照注册」可截取当前画面并注册新人员<br>关闭页面后将自动释放摄像头</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-content" style="max-width:380px;">
+      <div class="modal-header">
+        <span class="modal-title">⚠️ 确认删除</span>
+        <button class="modal-close" id="deleteModalCloseBtn" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:15px; line-height:1.6;">确定要删除 <strong id="deleteTargetName" style="color:var(--accent-light);"></strong> 的人脸数据吗？</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">删除后不可恢复，需要重新注册。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="deleteCancelBtn" type="button">取消</button>
+        <button class="btn btn-danger" id="deleteConfirmBtn" type="button">🗑️ 确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="captureModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">📸 拍照注册</span>
+        <button class="modal-close" id="modalCloseBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="capture-preview">
+          <img id="capturePreviewImg" src="" alt="拍照预览">
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label">输入人员姓名</label>
+          <input type="text" class="form-input" id="captureName" placeholder="请输入姓名（如：张三）" maxlength="20">
+        </div>
+        <div class="msg-box" id="captureMsg"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="captureCancelBtn">取消</button>
+        <button class="btn btn-primary" id="captureSubmitBtn">✅ 确认注册</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    tabBtns.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+  });
+});
+
+function setupUploadZone(zoneId, inputId, displayId) {
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  const display = document.getElementById(displayId);
+
+  input.addEventListener('change', () => {
+    const name = input.files[0]?.name;
+    if (name) {
+      display.textContent = '📎 ' + name;
+      display.classList.add('show');
+    } else {
+      display.classList.remove('show');
+    }
+  });
+
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+}
+setupUploadZone('regUploadZone', 'regFile', 'regFileName');
+setupUploadZone('imgUploadZone', 'imgFile', 'imgFileName');
+
+function showMsg(elId, msg, type='info') {
+  const el = document.getElementById(elId);
+  el.className = 'msg-box show ' + type;
+  el.textContent = msg;
+}
+function hideMsg(elId) {
+  document.getElementById(elId).classList.remove('show');
+}
+
+const regForm = document.getElementById('regForm');
+const regSubmitBtn = document.getElementById('regSubmitBtn');
+
+regForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  regSubmitBtn.disabled = true;
+  regSubmitBtn.textContent = '⏳ 注册中...';
+  hideMsg('regMsg');
+
+  try {
+    const data = new FormData(regForm);
+    const res = await fetch('/register', { method: 'POST', body: data });
+    const json = await res.json();
+    if (json.success) {
+      let msg = '✅ ' + json.msg;
+      if (json.quality !== undefined) {
+          msg += ' | 质量:' + (json.quality * 100).toFixed(0) + '%';
+      }
+      if (json.total_images !== undefined) {
+          msg += ' | 共' + json.total_images + '张';
+      }
+      showMsg('regMsg', msg, 'success');
+      regForm.reset();
+      document.getElementById('regFileName').classList.remove('show');
+      // 延迟800ms加载，避开后端刚启动接口未初始化完成
+      setTimeout(()=>{
+        loadFaceLibrary();
+        // 每3秒自动刷新人脸列表，新增、删除人脸实时同步页面
+        setInterval(loadFaceLibrary, 3000);
+      }, 800);
+      setInterval(loadFaceLibrary, 3000);
+    } else {
+      showMsg('regMsg', '❌ ' + json.msg, 'error');
+    }
+  } catch (err) {
+    showMsg('regMsg', '❌ 网络错误：' + err.message, 'error');
+  } finally {
+    regSubmitBtn.disabled = false;
+    regSubmitBtn.textContent = '✅ 提交注册';
+  }
+});
+
+const faceLibraryEl = document.getElementById('faceLibrary');
+
+const deleteModal = document.getElementById('deleteModal');
+const deleteTargetNameEl = document.getElementById('deleteTargetName');
+const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+let pendingDeleteName = null;
+
+faceLibraryEl.addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.del-btn');
+  if (!delBtn) return;
+  const name = delBtn.dataset.name;
+  if (!name) return;
+  pendingDeleteName = name;
+  deleteTargetNameEl.textContent = name;
+  deleteModal.classList.add('show');
+});
+
+deleteConfirmBtn.addEventListener('click', async () => {
+  if (!pendingDeleteName) return;
+  const name = pendingDeleteName;
+  deleteConfirmBtn.disabled = true;
+  deleteConfirmBtn.textContent = '⏳ 删除中...';
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    const res = await fetch('/delete_face', { method: 'POST', body: formData });
+    const json = await res.json();
+    if (json.success) {
+      deleteModal.classList.remove('show');
+      setTimeout(()=>{
+      loadFaceLibrary();
+        // 每3秒自动刷新人脸列表，新增/删除实时同步
+      setInterval(loadFaceLibrary, 3000);
+    }, 800);
+    } else {
+      alert(json.msg);
+    }
+  } catch (err) {
+    alert('删除失败：' + err.message);
+  } finally {
+    pendingDeleteName = null;
+    deleteConfirmBtn.disabled = false;
+    deleteConfirmBtn.textContent = '🗑️ 确认删除';
+  }
+});
+
+document.getElementById('deleteModalCloseBtn').addEventListener('click', () => {
+  deleteModal.classList.remove('show');
+  pendingDeleteName = null;
+});
+document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+  deleteModal.classList.remove('show');
+  pendingDeleteName = null;
+});
+
+async function loadFaceLibrary() {
+  const container = faceLibraryEl;
+  try {
+    const res = await fetch('/known_faces?t=' + Date.now());
+    const json = await res.json();
+    if (json.count === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div class="text">暂无注册人脸，请先添加</div></div>';
+      return;
+    }
+    container.innerHTML = json.faces.map(f => {
+      const name = f.name || f;
+      const count = f.image_count || 1;
+      return `<div class="face-tag">
+        <div class="info" style="flex:1;min-width:0;">
+         <div class="name" style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">👤 ${escapeHtml(name)}</div>
+          <div class="meta" style="font-size:11px;color:var(--text-muted);margin-top:2px;">${count} 张图片</div>
+        </div>
+        <button class="del-btn" type="button" data-name="${escapeAttr(name)}" title="删除">✕</button>
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><div class="text">加载失败</div></div>';
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+const imgForm = document.getElementById('imgForm');
+const imgSubmitBtn = document.getElementById('imgSubmitBtn');
+
+imgForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  imgSubmitBtn.disabled = true;
+  imgSubmitBtn.textContent = '⏳ 识别中...';
+  document.getElementById('imgLoading').classList.add('show');
+  document.getElementById('imgResultArea').style.display = 'none';
+  hideMsg('imgMsg');
+
+  try {
+    const data = new FormData(imgForm);
+    const res = await fetch('/predict_img', { method: 'POST', body: data });
+    const json = await res.json();
+
+    if (json.error) {
+      showMsg('imgMsg', '❌ ' + json.error, 'error');
+    } else if (json.face_count === 0) {
+      showMsg('imgMsg', '⚠️ 图片中未检测到人脸', 'info');
+    } else {
+      displayImgResult(json);
+    }
+  } catch (err) {
+    showMsg('imgMsg', '❌ 网络错误：' + err.message, 'error');
+  } finally {
+    imgSubmitBtn.disabled = false;
+    imgSubmitBtn.textContent = '🚀 开始识别';
+    document.getElementById('imgLoading').classList.remove('show');
+  }
+});
+
+function displayImgResult(json) {
+  document.getElementById('imgFaceCount').textContent = json.face_count;
+  const grid = document.getElementById('imgResultGrid');
+  grid.innerHTML = json.results.map(r => {
+    const isKnown = r.name !== '未知人员';
+    const cls = isKnown ? 'known' : 'unknown';
+    const icon = isKnown ? '✅' : '❓';
+    const distInfo = r.distance !== undefined ? `<br><span style="font-size:11px;color:var(--text-muted)">距离: ${r.distance}</span>` : '';
+    return `<div class="result-card ${cls}">
+      <div class="face-icon">${icon}</div>
+      <div class="face-name">${escapeHtml(r.name)}</div>
+      <div class="face-conf">置信度: ${r.confidence}${distInfo}</div>
+    </div>`;
+
+  }).join('');
+  const annotatedWrapper = document.getElementById('imgAnnotatedWrapper');
+  const annotatedImg = document.getElementById('imgAnnotated');
+  if (json.annotated_img) {
+    annotatedImg.src = json.annotated_img;
+    annotatedWrapper.style.display = 'block';
+  } else {
+    annotatedWrapper.style.display = 'none';
+  }
+  document.getElementById('imgResultArea').style.display = 'block';
+}
+
+const videoStream = document.getElementById('videoStream');
+const videoPlaceholder = document.getElementById('videoPlaceholder');
+const videoBadge = document.getElementById('videoBadge');
+const startCamBtn = document.getElementById('startCamBtn');
+const stopCamBtn = document.getElementById('stopCamBtn');
+const refreshCamBtn = document.getElementById('refreshCamBtn');
+const captureBtn = document.getElementById('captureBtn');
+
+function startCamera() {
+  videoStream.src = '/video';
+  videoStream.style.display = 'block';
+  videoPlaceholder.style.display = 'none';
+  videoBadge.style.display = 'flex';
+  startCamBtn.style.display = 'none';
+  stopCamBtn.style.display = 'inline-flex';
+  captureBtn.style.display = 'inline-flex';
+}
+
+async function stopCamera() {
+  videoStream.src = '';
+  videoStream.style.display = 'none';
+  videoPlaceholder.style.display = 'flex';
+  videoBadge.style.display = 'none';
+  startCamBtn.style.display = 'inline-flex';
+  stopCamBtn.style.display = 'none';
+  captureBtn.style.display = 'none';
+  try { await fetch('/stop_camera', { method: 'POST' }); } catch(e) {}
+}
+
+startCamBtn.addEventListener('click', startCamera);
+stopCamBtn.addEventListener('click', stopCamera);
+refreshCamBtn.addEventListener('click', () => {
+  if (videoStream.src) {
+    videoStream.src = '/video?' + Date.now();
+  } else {
+    alert('请先开启摄像头');
+  }
+});
+
+const captureModal = document.getElementById('captureModal');
+const capturePreviewImg = document.getElementById('capturePreviewImg');
+const captureNameInput = document.getElementById('captureName');
+const captureSubmitBtn = document.getElementById('captureSubmitBtn');
+const captureMsgEl = document.getElementById('captureMsg');
+let capturedBlob = null;
+
+function showCaptureModal() {
+  if (!videoStream.src) { alert('请先开启摄像头'); return; }
+  captureModal.classList.add('show');
+  capturePreviewImg.src = '';
+  captureNameInput.value = '';
+  hideMsg('captureMsg');
+  captureSubmitBtn.disabled = false;
+  captureSubmitBtn.textContent = '✅ 确认注册';
+
+  fetch('/capture')
+    .then(r => {
+      if (!r.ok) throw new Error('摄像头未就绪');
+      return r.blob();
+    })
+    .then(blob => {
+      capturedBlob = blob;
+      capturePreviewImg.src = URL.createObjectURL(blob);
+    })
+    .catch(err => {
+      showMsg('captureMsg', '❌ 拍照失败：' + err.message, 'error');
+    });
+}
+
+function closeCaptureModal() {
+  captureModal.classList.remove('show');
+  capturedBlob = null;
+}
+
+document.getElementById('captureBtn').addEventListener('click', showCaptureModal);
+document.getElementById('modalCloseBtn').addEventListener('click', closeCaptureModal);
+document.getElementById('captureCancelBtn').addEventListener('click', closeCaptureModal);
+
+captureSubmitBtn.addEventListener('click', async () => {
+  const name = captureNameInput.value.trim();
+  if (!name) { showMsg('captureMsg', '❌ 请输入姓名', 'error'); return; }
+  if (!capturedBlob) { showMsg('captureMsg', '❌ 照片未就绪，请稍候', 'error'); return; }
+
+  captureSubmitBtn.disabled = true;
+  captureSubmitBtn.textContent = '⏳ 注册中...';
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('file', capturedBlob, 'capture.jpg');
+    const res = await fetch('/register', { method: 'POST', body: formData });
+    const json = await res.json();
+    if (json.success) {
+      showMsg('captureMsg', '✅ ' + json.msg, 'success');
+      setTimeout(() => { closeCaptureModal(); loadFaceLibrary(); }, 1500);
+    } else {
+      showMsg('captureMsg', '❌ ' + json.msg, 'error');
+    }
+  } catch (err) {
+    showMsg('captureMsg', '❌ 网络错误：' + err.message, 'error');
+  } finally {
+    captureSubmitBtn.disabled = false;
+    captureSubmitBtn.textContent = '✅ 确认注册';
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  videoStream.src = '';
+  navigator.sendBeacon('/stop_camera');
+  stopLocalCamera();
+});
+
+loadFaceLibrary();
+
+const useServerCamBtn = document.getElementById('useServerCamBtn');
+const useLocalCamBtn = document.getElementById('useLocalCamBtn');
+const serverCamControls = document.getElementById('serverCamControls');
+const localCamControls = document.getElementById('localCamControls');
+
+const localVideo = document.getElementById('localVideo');
+const localCanvas = document.getElementById('localCanvas');
+const startLocalCamBtn = document.getElementById('startLocalCamBtn');
+const stopLocalCamBtn = document.getElementById('stopLocalCamBtn');
+const localCaptureBtn = document.getElementById('localCaptureBtn');
+
+const confidenceSlider2 = document.getElementById('confidenceSlider2');
+const confidenceValue2 = document.getElementById('confidenceValue2');
+const matchSlider2 = document.getElementById('matchSlider2');
+const matchValue2 = document.getElementById('matchValue2');
+
+let localMediaStream = null;
+let localDetectionTimer = null;
+let isUsingLocalCam = false;
+let currentConfidence = 0.70;
+let currentMatchThreshold = 0.45;
+
+confidenceSlider2.addEventListener('input', () => {
+  currentConfidence = parseFloat(confidenceSlider2.value);
+  confidenceValue2.textContent = currentConfidence.toFixed(2);
+  updateDetectionConfig();
+});
+
+matchSlider2.addEventListener('input', () => {
+  currentMatchThreshold = parseFloat(matchSlider2.value);
+  matchValue2.textContent = currentMatchThreshold.toFixed(2);
+  updateDetectionConfig();
+});
+
+async function updateDetectionConfig() {
+  try {
+    const formData = new FormData();
+    formData.append('confidence_threshold', currentConfidence);
+    formData.append('match_threshold', currentMatchThreshold);
+    await fetch('/set_config', { method: 'POST', body: formData });
+  } catch (e) {
+    console.log('Config update failed');
+  }
+}
+
+useServerCamBtn.addEventListener('click', () => {
+  stopLocalCamera();
+  isUsingLocalCam = false;
+  serverCamControls.style.display = 'flex';
+  localCamControls.style.display = 'none';
+  useServerCamBtn.classList.add('active');
+  useLocalCamBtn.classList.remove('active');
+});
+
+useLocalCamBtn.addEventListener('click', () => {
+  stopCamera();
+  isUsingLocalCam = true;
+  localCamControls.style.display = 'flex';
+  serverCamControls.style.display = 'none';
+  useLocalCamBtn.classList.add('active');
+  useServerCamBtn.classList.remove('active');
+});
+
+async function startLocalCamera() {
+  try {
+    const constraints = {
+      video: {
+        facingMode: 'user',
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      }
+    };
+    
+    localMediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+    localVideo.srcObject = localMediaStream;
+    localVideo.style.display = 'block';
+    localCanvas.style.display = 'block';
+    videoStream.style.display = 'none';
+    videoPlaceholder.style.display = 'none';
+    videoBadge.style.display = 'flex';
+    
+    startLocalCamBtn.style.display = 'none';
+    stopLocalCamBtn.style.display = 'inline-flex';
+    localCaptureBtn.style.display = 'inline-flex';
+    
+    localCanvas.width = localVideo.videoWidth || 640;
+    localCanvas.height = localVideo.videoHeight || 480;
+    
+    startLocalDetection();
+  } catch (err) {
+    alert('无法访问摄像头，请确保已授予相机权限');
+    console.error(err);
+  }
+}
+
+function stopLocalCamera() {
+  if (localDetectionTimer) {
+    clearInterval(localDetectionTimer);
+    localDetectionTimer = null;
+  }
+  
+  if (localMediaStream) {
+    localMediaStream.getTracks().forEach(track => track.stop());
+    localMediaStream = null;
+  }
+  
+  localVideo.srcObject = null;
+  localVideo.style.display = 'none';
+  localCanvas.style.display = 'none';
+  videoPlaceholder.style.display = 'flex';
+  videoBadge.style.display = 'none';
+  
+  startLocalCamBtn.style.display = 'inline-flex';
+  stopLocalCamBtn.style.display = 'none';
+  localCaptureBtn.style.display = 'none';
+}
+
+function startLocalDetection() {
+  localDetectionTimer = setInterval(async () => {
+    if (!localMediaStream) return;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = localVideo.videoWidth || 640;
+    canvas.height = localVideo.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(localVideo, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      
+      const formData = new FormData();
+      formData.append('file', blob, 'local_frame.jpg');
+      
+      try {
+        const res = await fetch('/predict_img', { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        const drawCtx = localCanvas.getContext('2d');
+        drawCtx.clearRect(0, 0, localCanvas.width, localCanvas.height);
+        
+        if (data.results && data.results.length > 0) {
+          const scaleX = localCanvas.width / canvas.width;
+          const scaleY = localCanvas.height / canvas.height;
+          
+          data.results.forEach((result, index) => {
+            if (result.location) {
+              const [top, right, bottom, left] = result.location;
+              const color = result.name !== '未知人员' ? '#00ff00' : '#ff0000';
+              
+              drawCtx.strokeStyle = color;
+              drawCtx.lineWidth = 3;
+              drawCtx.strokeRect(
+                left * scaleX,
+                top * scaleY,
+                (right - left) * scaleX,
+                (bottom - top) * scaleY
+              );
+              
+              drawCtx.fillStyle = color;
+              drawCtx.globalAlpha = 0.8;
+              const labelWidth = 100;
+              const labelHeight = 24;
+              drawCtx.fillRect(
+                left * scaleX,
+                bottom * scaleY,
+                labelWidth,
+                labelHeight
+              );
+              drawCtx.globalAlpha = 1;
+              drawCtx.fillStyle = '#ffffff';
+              drawCtx.font = '14px Arial';
+              drawCtx.fillText(
+                result.name,
+                left * scaleX + 5,
+                bottom * scaleY + 18
+              );
+            }
+          });
+        }
+      } catch (e) {
+        console.log('Local detection error:', e);
+      }
+    }, 'image/jpeg', 0.7);
+  }, 500);
+}
+
+startLocalCamBtn.addEventListener('click', startLocalCamera);
+stopLocalCamBtn.addEventListener('click', stopLocalCamera);
+
+localCaptureBtn.addEventListener('click', async () => {
+  if (!localMediaStream) {
+    alert('请先启动本机摄像头');
+    return;
+  }
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = localVideo.videoWidth || 640;
+  canvas.height = localVideo.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(localVideo, 0, 0, canvas.width, canvas.height);
+  
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    
+    captureModal.classList.add('show');
+    capturePreviewImg.src = URL.createObjectURL(blob);
+    captureNameInput.value = '';
+    hideMsg('captureMsg');
+    capturedBlob = blob;
+    captureSubmitBtn.disabled = false;
+    captureSubmitBtn.textContent = '✅ 确认注册';
+  }, 'image/jpeg', 0.9);
+});
+</script>
+</body>
+</html>

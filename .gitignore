@@ -1,0 +1,40 @@
+# 虚拟环境
+venv/
+.env/
+.venv/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 日志
+*.log
+logs/
+
+# SSL 证书（自动生成）
+cert.pem
+key.pem
+
+# 存储目录（运行时自动创建）
+storage/
+!storage/.gitkeep
+
+# 临时文件
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 测试样本（可选）
+test_samples/
