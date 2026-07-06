@@ -56,8 +56,10 @@
 git clone https://github.com/FANG040605/face-eyes.git
 cd face-eyes
 
-# 双击运行启动器
-start.bat
+# 运行启动器（PowerShell）
+.\start.bat
+
+# 或者直接双击 start.bat 文件
 ```
 
 **或者手动运行**:
