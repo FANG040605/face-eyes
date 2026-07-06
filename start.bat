@@ -32,6 +32,7 @@ echo [INFO] Installing dependencies...
 pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo Error: Failed to install dependencies
+    echo Note: If cryptography fails, try: pip install --upgrade pip setuptools wheel
     pause
     exit /b 1
 )

@@ -31,9 +31,14 @@ echo "[*] 激活虚拟环境..."
 source venv/bin/activate
 
 # 安装依赖
-echo "[*] 安装/更新依赖..."
+echo "[INFO] Installing dependencies..."
 pip install -r requirements.txt
-echo "[+] 依赖安装完成"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install dependencies"
+    echo "Note: If cryptography fails, try: pip install --upgrade pip setuptools wheel"
+    exit 1
+fi
+echo "[OK] Dependencies installed"
 
 echo ""
 echo "==================== 启动服务 ===================="

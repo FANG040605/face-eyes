@@ -1078,40 +1078,37 @@ def _generate_self_signed_cert():
     if cert_path.exists() and key_path.exists():
         return str(cert_path), str(key_path)
 
-    try:
-        from cryptography import x509
-        from cryptography.x509.oid import NameOID
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa
-        import datetime
+    from cryptography import x509
+    from cryptography.x509.oid import NameOID
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    import datetime
 
-        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "CN"),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Local"),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, "Local"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "AI Faces Pro"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "localhost"),
-        ])
-        cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer)\
-            .public_key(private_key.public_key()).serial_number(x509.random_serial_number())\
-            .not_valid_before(datetime.datetime.utcnow())\
-            .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))\
-            .add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False)\
-            .sign(private_key, hashes.SHA256())
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = issuer = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "CN"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Local"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "Local"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "AI Faces Pro"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "localhost"),
+    ])
+    cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer)\
+        .public_key(private_key.public_key()).serial_number(x509.random_serial_number())\
+        .not_valid_before(datetime.datetime.utcnow())\
+        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=365))\
+        .add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False)\
+        .sign(private_key, hashes.SHA256())
 
-        with open(cert_path, "wb") as f:
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
-        with open(key_path, "wb") as f:
-            f.write(private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption(),
-            ))
-        return str(cert_path), str(key_path)
-    except Exception as e:
-        print(f"[ERROR] SSL 证书生成失败: {e}")
-        return None, None
+    with open(cert_path, "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+    with open(key_path, "wb") as f:
+        f.write(private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        ))
+    print("[INFO] SSL 证书生成成功")
+    return str(cert_path), str(key_path)
 
 
 @app.on_event("startup")
@@ -1124,17 +1121,12 @@ if __name__ == "__main__":
     import uvicorn, socket
 
     cert_path, key_path = _generate_self_signed_cert()
-    use_https = cert_path is not None
     port = 8005
-    scheme = "https" if use_https else "http"
     local_ip = socket.gethostbyname(socket.gethostname())
 
     print(f"[INFO] 服务启动中... 编码进程数: {_cfg['encoding_workers']}")
     print(f"[INFO] 持久化存储根目录: ./storage/")
-    print(f"[INFO] 局域网访问: {scheme}://{local_ip}:{port}")
-    print(f"[INFO] 本地访问: {scheme}://127.0.0.1:{port}")
+    print(f"[INFO] 局域网访问: https://{local_ip}:{port}")
+    print(f"[INFO] 本地访问: https://127.0.0.1:{port}")
 
-    if use_https:
-        uvicorn.run("main:app", host="0.0.0.0", port=port, ssl_keyfile=key_path, ssl_certfile=cert_path)
-    else:
-        uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, ssl_keyfile=key_path, ssl_certfile=cert_path)
