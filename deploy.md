@@ -69,7 +69,7 @@ pip install fastapi uvicorn python-multipart pillow numpy opencv-python face-rec
 
 ### 2.4 步骤四：部署项目文件
 
-将以下文件复制到 `d:\ai-faces-practice\face_detection_app\` 目录：
+将以下文件复制到项目目录中：
 
 | 文件 | 说明 |
 |------|------|
@@ -81,7 +81,7 @@ pip install fastapi uvicorn python-multipart pillow numpy opencv-python face-rec
 ### 2.5 步骤五：启动服务
 
 ```powershell
-cd d:\ai-faces-practice\face_detection_app
+cd d:\face-eyes
 
 # 方式1：HTTP 模式（开发环境）
 venv\Scripts\python.exe -m uvicorn main:app --host 0.0.0.0 --port 8005
@@ -134,14 +134,14 @@ pip install fastapi uvicorn python-multipart pillow numpy opencv-python face-rec
 ### 3.4 步骤四：部署项目文件
 
 ```bash
-mkdir -p /opt/ai-faces-practice/face_detection_app
+mkdir -p /opt/face-eyes
 # 将项目文件复制到该目录
 ```
 
 ### 3.5 步骤五：启动服务
 
 ```bash
-cd /opt/ai-faces-practice/face_detection_app
+cd /opt/face-eyes
 source venv/bin/activate
 
 # 启动服务
@@ -181,7 +181,7 @@ pip install fastapi uvicorn python-multipart pillow numpy opencv-python face-rec
 ### 4.4 步骤四：启动服务
 
 ```bash
-cd ~/ai-faces-practice/face_detection_app
+cd ~/face-eyes
 uvicorn main:app --host 0.0.0.0 --port 8005
 ```
 
@@ -263,9 +263,9 @@ After=network.target
 
 [Service]
 User=www-data
-WorkingDirectory=/opt/ai-faces-practice/face_detection_app
-Environment="PATH=/opt/ai-faces-practice/venv/bin"
-ExecStart=/opt/ai-faces-practice/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8005
+WorkingDirectory=/opt/face-eyes
+Environment="PATH=/opt/face-eyes/venv/bin"
+ExecStart=/opt/face-eyes/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8005
 Restart=always
 RestartSec=5
 

@@ -54,7 +54,7 @@
 ```powershell
 # 克隆项目
 git clone https://github.com/FANG040605/face-eyes.git
-cd face-eyes/face_detection_app
+cd face-eyes
 
 # 双击运行启动器
 start.bat
@@ -81,7 +81,7 @@ python main.py
 ```bash
 # 克隆项目
 git clone https://github.com/FANG040605/face-eyes.git
-cd face-eyes/face_detection_app
+cd face-eyes
 
 # 运行启动器
 chmod +x start.sh
@@ -117,25 +117,24 @@ python main.py
 ## 三、项目结构
 
 ```
-face_detection_app/
-├── main.py                 # 主程序入口（核心代码）
-├── index.html              # 前端页面（单页应用）
-├── requirements.txt        # Python 依赖列表
-├── start.bat               # Windows 一键启动器
-├── start.sh                # macOS/Linux 一键启动器
-├── test_performance.py     # 性能测试脚本
-├── models/                 # DNN 模型文件
-│   ├── deploy.prototxt
-│   └── res10_300x300_ssd_iter_140000_fp16.caffemodel
-├── storage/                # 持久化存储目录（自动创建）
-│   ├── known_face/         # 已注册人脸库
-│   ├── upload_temp/        # 上传临时目录
-│   ├── camera_capture/     # 摄像头抓拍
-│   ├── face_meta/          # 人脸元数据
-│   └── dnn_models/         # DNN 模型缓存
-├── test_samples/           # 测试样本图片
-├── cert.pem                # SSL 证书（自动生成）
-└── key.pem                 # SSL 私钥（自动生成）
+face-eyes/
+├── main.py                                   # 主程序入口（核心代码）
+├── index.html                                # 前端页面（单页应用）
+├── requirements.txt                          # Python 依赖列表
+├── start.bat                                 # Windows 一键启动器
+├── start.sh                                  # macOS/Linux 一键启动器
+├── test_performance.py                       # 性能测试脚本
+├── deploy.prototxt                           # DNN 模型配置文件
+├── res10_300x300_ssd_iter_140000_fp16.caffemodel  # DNN 模型权重
+├── storage/                                  # 持久化存储目录（自动创建）
+│   ├── known_face/                           # 已注册人脸库
+│   ├── upload_temp/                          # 上传临时目录
+│   ├── camera_capture/                       # 摄像头抓拍
+│   ├── face_meta/                            # 人脸元数据
+│   └── dnn_models/                           # DNN 模型缓存
+├── test_samples/                             # 测试样本图片
+├── cert.pem                                  # SSL 证书（自动生成）
+└── key.pem                                   # SSL 私钥（自动生成）
 ```
 
 ---

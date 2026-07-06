@@ -101,6 +101,14 @@ class FaceDetector:
         prototxt_path = MODEL_DIR / 'deploy.prototxt'
         caffemodel_path = MODEL_DIR / 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
 
+        root_prototxt = _APP_DIR / 'deploy.prototxt'
+        root_caffemodel = _APP_DIR / 'res10_300x300_ssd_iter_140000_fp16.caffemodel'
+
+        if root_prototxt.exists() and root_caffemodel.exists():
+            prototxt_path = root_prototxt
+            caffemodel_path = root_caffemodel
+            print("[INFO] 使用项目根目录的 DNN 模型文件")
+
         if not prototxt_path.exists() or not caffemodel_path.exists():
             print("[INFO] 正在下载 DNN 模型文件至持久存储目录 storage/dnn_models...")
             self._download_models(prototxt_path, caffemodel_path)
